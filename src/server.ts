@@ -5,6 +5,21 @@ const port = 3000;
 
 const users = ['Leo', 'Riitta', 'Julian', 'Dennis'];
 
+app.post('/api/users', (request, response) => {
+  response.send(request.body.name);
+});
+
+app.delete('/api/users/:name', (request, response) => {
+  const isNameKnown = users.includes(request.params.name);
+  if (isNameKnown) {
+    const singleUser = users.indexOf(request.params.name);
+    users.splice(singleUser, 1);
+    response.send(users);
+  } else {
+    response.status(404).send('Site not found.');
+  }
+});
+
 app.get('/api/users/:name', (request, response) => {
   const isNameKnown = users.includes(request.params.name);
   if (isNameKnown) {
@@ -15,7 +30,6 @@ app.get('/api/users/:name', (request, response) => {
 });
 
 app.get('/api/users', (_request, response) => {
-  const users = ['Leo', 'Riitta', 'Julian', 'Dennis'];
   response.send(users);
 });
 
