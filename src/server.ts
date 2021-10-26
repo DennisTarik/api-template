@@ -3,8 +3,15 @@ import express from 'express';
 const app = express();
 const port = 3000;
 
+const users = ['Leo', 'Riitta', 'Julian', 'Dennis'];
+
 app.get('/api/users/:name', (request, response) => {
-  response.send(request.params.name);
+  const isNameKnown = users.includes(request.params.name);
+  if (isNameKnown) {
+    response.send(request.params.name);
+  } else {
+    response.status(404).send('Site not found.');
+  }
 });
 
 app.get('/api/users', (_request, response) => {
