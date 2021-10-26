@@ -14,7 +14,7 @@ Delete http://localhost:3000/api/users
 
 ### Delete a single resource
 
-Delete http://localhost:3000/api/users/Riittaa HTTP/1.1
+Delete http://localhost:3000/api/users/Dennis HTTP/1.1
 
 
 ### Post a user
@@ -23,7 +23,7 @@ POST http://localhost:3000/api/users HTTP/1.1
 Content-Type: application/json
 
 {
-  "name": "bob"
+  "name": "Bob"
 }
 
 

@@ -3,6 +3,8 @@ import express from 'express';
 const app = express();
 const port = 3000;
 
+app.use(express.json());
+
 const users = ['Leo', 'Riitta', 'Julian', 'Dennis'];
 
 app.post('/api/users', (request, response) => {
