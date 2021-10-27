@@ -1,12 +1,14 @@
 import express from 'express';
+import cookieParser from 'cookie-parser';
 
 const app = express();
 const port = 3000;
 
-// for parsing application/json
+// Middleware for parsing application/json
 app.use(express.json());
 
-// Middleware for Cookie Parsing
+// Middleware for parsing cookies
+app.use(cookieParser());
 
 const users = [
   {
@@ -31,6 +33,18 @@ const users = [
   },
 ];
 
+// Cookie
+app.get('/api/me', (request, response) => {
+  const username = request.cookies.username;
+  console.log(request.cookies);
+  const foundUser = users.find((user) => user.username === username);
+  if (foundUser) {
+    response.send(foundUser);
+  } else {
+    response.status(404).send('User not found');
+  }
+});
+
 // Login a new user
 app.post('/api/login', (request, response) => {
   const user = users.find(
@@ -39,6 +53,7 @@ app.post('/api/login', (request, response) => {
       user.password === request.body.password
   );
   if (user) {
+    response.setHeader('Set-Cookie', `username=${user.username}`);
     response.send(`${user.username} logged in`);
   } else {
     response.status(401).send('Username/Password incorrect');
