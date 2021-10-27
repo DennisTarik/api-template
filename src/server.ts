@@ -6,40 +6,66 @@ const port = 3000;
 // for parsing application/json
 app.use(express.json());
 
+// Middleware for Cookie Parsing
+
 const users = [
   {
     name: 'Leo',
     username: 'leoleo1234',
-    passwort: '123abc',
+    password: '123abc',
   },
   {
     name: 'Dennis',
     username: 'karlkartoffel',
-    passwort: '321cba',
+    password: '321cba',
   },
   {
     name: 'Lisa',
     username: 'lisalisboa',
-    passwort: 'abc123',
+    password: 'abc123',
   },
   {
     name: 'Lara',
     username: 'laramara',
-    passwort: 'cba321',
+    password: 'cba321',
   },
 ];
 
+// Login a new user
+app.post('/api/login', (request, response) => {
+  const user = users.find(
+    (user) =>
+      user.username === request.body.username &&
+      user.password === request.body.password
+  );
+  if (user) {
+    response.send(`${user.username} logged in`);
+  } else {
+    response.status(401).send('Username/Password incorrect');
+  }
+});
+
+// Post a new user
 app.post('/api/users', (request, response) => {
   const newUser = request.body;
-  const isNameKnown = users.includes(newUser.name);
-  if (isNameKnown) {
-    response.status(409).send('There is a Conflict.');
+  if (
+    typeof newUser.name !== 'string' ||
+    typeof newUser.username !== 'string' ||
+    typeof newUser.password !== 'string'
+  ) {
+    response.status(400).send('Missing properties.');
+    return;
+  }
+
+  if (users.some((user) => user.username === newUser.username)) {
+    response.status(409).send('User already exists');
   } else {
-    users.push(newUser.name);
+    users.push(newUser);
     response.send(`${newUser.name} added`);
   }
 });
 
+// Delete a new user
 app.delete('/api/users/:username', (request, response) => {
   const user = users.find((user) => user.username === request.params.username);
   if (user) {
@@ -53,6 +79,7 @@ app.delete('/api/users/:username', (request, response) => {
   }
 });
 
+// Get a new user
 app.get('/api/users/:name', (request, response) => {
   const user = users.find((user) => user.username === request.params.name);
   if (user) {
