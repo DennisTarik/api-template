@@ -3,12 +3,23 @@ import express from 'express';
 const app = express();
 const port = 3000;
 
+// for parsing application/json
 app.use(express.json());
 
 const users = ['Leo', 'Riitta', 'Julian', 'Dennis'];
 
 app.post('/api/users', (request, response) => {
-  response.send(request.body.name);
+  const newUser = request.body;
+  const isNameKnown = users.includes(newUser.name);
+  if (isNameKnown) {
+    response.status(409).send('There is a Conflict.');
+  } else {
+    users.push(newUser.name);
+    response.send(`${newUser.name} added`);
+  }
+  // You can use Splice to add a new name to an array
+  /* users.splice(users.length, 0, newUser.name); */
+  // You can use push to add a new name to an array
 });
 
 app.delete('/api/users/:name', (request, response) => {
