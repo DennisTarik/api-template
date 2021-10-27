@@ -6,7 +6,28 @@ const port = 3000;
 // for parsing application/json
 app.use(express.json());
 
-const users = ['Leo', 'Riitta', 'Julian', 'Dennis'];
+const users = [
+  {
+    name: 'Leo',
+    username: 'leoleo1234',
+    passwort: '123abc',
+  },
+  {
+    name: 'Dennis',
+    username: 'karlkartoffel',
+    passwort: '321cba',
+  },
+  {
+    name: 'Lisa',
+    username: 'lisalisboa',
+    passwort: 'abc123',
+  },
+  {
+    name: 'Lara',
+    username: 'laramara',
+    passwort: 'cba321',
+  },
+];
 
 app.post('/api/users', (request, response) => {
   const newUser = request.body;
@@ -17,26 +38,25 @@ app.post('/api/users', (request, response) => {
     users.push(newUser.name);
     response.send(`${newUser.name} added`);
   }
-  // You can use Splice to add a new name to an array
-  /* users.splice(users.length, 0, newUser.name); */
-  // You can use push to add a new name to an array
 });
 
-app.delete('/api/users/:name', (request, response) => {
-  const isNameKnown = users.includes(request.params.name);
-  if (isNameKnown) {
-    const singleUser = users.indexOf(request.params.name);
-    users.splice(singleUser, 1);
-    response.send(users);
+app.delete('/api/users/:username', (request, response) => {
+  const user = users.find((user) => user.username === request.params.username);
+  if (user) {
+    const filter = users.filter(
+      (user) => user.username != request.params.username
+    );
+    JSON.stringify(user);
+    response.send(filter);
   } else {
     response.status(404).send('Site not found.');
   }
 });
 
 app.get('/api/users/:name', (request, response) => {
-  const isNameKnown = users.includes(request.params.name);
-  if (isNameKnown) {
-    response.send(request.params.name);
+  const user = users.find((user) => user.username === request.params.name);
+  if (user) {
+    response.send(user);
   } else {
     response.status(404).send('Site not found.');
   }
