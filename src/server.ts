@@ -4,6 +4,7 @@ dotenv.config();
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import { connectDatabase } from './utils/database';
+import { getUserCollection } from './utils/database';
 
 if (!process.env.MONGODB_URI) {
   throw new Error('No MONGODB URL dotenv variable');
@@ -69,7 +70,8 @@ app.post('/api/login', (request, response) => {
 });
 
 // Post a new user
-app.post('/api/users', (request, response) => {
+app.post('/api/users', async (request, response) => {
+  const userCollection = getUserCollection();
   const newUser = request.body;
   if (
     typeof newUser.name !== 'string' ||
@@ -80,11 +82,16 @@ app.post('/api/users', (request, response) => {
     return;
   }
 
-  if (users.some((user) => user.username === newUser.username)) {
-    response.status(409).send('User already exists');
+  const isUserKnown = await userCollection.findOne({
+    username: newUser.username,
+  });
+  if (isUserKnown) {
+    response
+      .status(409)
+      .send(`There is already someone called ${newUser.name}`);
   } else {
-    users.push(newUser);
-    response.send(`${newUser.name} added`);
+    userCollection.insertOne(newUser);
+    response.send(`${newUser.name} was added!`);
   }
 });
 
@@ -120,7 +127,7 @@ app.get('/', (_req, res) => {
   res.send('Hello World!');
 });
 
-connectDatabase('process.env.MONGODB_URI').then(() =>
+connectDatabase(process.env.MONGODB_URI).then(() =>
   app.listen(port, () => {
     console.log(`Example app listening at http://localhost:${port}`);
   })
