@@ -1,5 +1,14 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 import express from 'express';
 import cookieParser from 'cookie-parser';
+import { connectDatabase } from './utils/database';
+import { getUserCollection } from './utils/database';
+
+if (!process.env.MONGODB_URI) {
+  throw new Error('No MONGODB URL dotenv variable');
+}
 
 const app = express();
 const port = 3000;
@@ -61,7 +70,8 @@ app.post('/api/login', (request, response) => {
 });
 
 // Post a new user
-app.post('/api/users', (request, response) => {
+app.post('/api/users', async (request, response) => {
+  const userCollection = getUserCollection();
   const newUser = request.body;
   if (
     typeof newUser.name !== 'string' ||
@@ -72,11 +82,16 @@ app.post('/api/users', (request, response) => {
     return;
   }
 
-  if (users.some((user) => user.username === newUser.username)) {
-    response.status(409).send('User already exists');
+  const isUserKnown = await userCollection.findOne({
+    username: newUser.username,
+  });
+  if (isUserKnown) {
+    response
+      .status(409)
+      .send(`There is already someone called ${newUser.name}`);
   } else {
-    users.push(newUser);
-    response.send(`${newUser.name} added`);
+    userCollection.insertOne(newUser);
+    response.send(`${newUser.name} was added!`);
   }
 });
 
@@ -95,23 +110,32 @@ app.delete('/api/users/:username', (request, response) => {
 });
 
 // Get a new user
-app.get('/api/users/:name', (request, response) => {
-  const user = users.find((user) => user.username === request.params.name);
-  if (user) {
-    response.send(user);
+app.get('/api/users/:username', async (request, response) => {
+  const userCollection = getUserCollection();
+  const user = request.params.username;
+  const userRequest = await userCollection.findOne({ username: user });
+  if (userRequest) {
+    response.send(userRequest);
   } else {
-    response.status(404).send('Site not found.');
+    response.status(404).send('Name is unknown');
   }
 });
 
-app.get('/api/users', (_request, response) => {
-  response.send(users);
+// Get all users
+app.get('/api/users', async (_request, response) => {
+  const userCollection = getUserCollection();
+  const cursor = await userCollection.find();
+  const allUsers = await cursor.toArray();
+
+  response.send(allUsers);
 });
 
 app.get('/', (_req, res) => {
   res.send('Hello World!');
 });
 
-app.listen(port, () => {
-  console.log(`Example app listening at http://localhost:${port}`);
-});
+connectDatabase(process.env.MONGODB_URI).then(() =>
+  app.listen(port, () => {
+    console.log(`Example app listening at http://localhost:${port}`);
+  })
+);
