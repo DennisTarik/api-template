@@ -110,17 +110,24 @@ app.delete('/api/users/:username', (request, response) => {
 });
 
 // Get a new user
-app.get('/api/users/:name', (request, response) => {
-  const user = users.find((user) => user.username === request.params.name);
-  if (user) {
-    response.send(user);
+app.get('/api/users/:username', async (request, response) => {
+  const userCollection = getUserCollection();
+  const user = request.params.username;
+  const userRequest = await userCollection.findOne({ username: user });
+  if (userRequest) {
+    response.send(userRequest);
   } else {
-    response.status(404).send('Site not found.');
+    response.status(404).send('Name is unknown');
   }
 });
 
-app.get('/api/users', (_request, response) => {
-  response.send(users);
+// Get all users
+app.get('/api/users', async (_request, response) => {
+  const userCollection = getUserCollection();
+  const cursor = await userCollection.find();
+  const allUsers = await cursor.toArray();
+
+  response.send(allUsers);
 });
 
 app.get('/', (_req, res) => {
